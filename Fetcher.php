@@ -32,14 +32,13 @@ class ViberLocalFetcher extends AbstractFetcherDriver implements FetchDriverInte
         $result = $db->query($query);
 
         while (false !== $row = $result->fetchArray()) {
-
             $subject = "chat";
             if (! empty($row["Name"])) {
                 $subject  = "chat \"{$row["Name"]}\"";
-            }
-            else {
+            } else {
                 $stmt = $db->prepare(
-                    'SELECT c.ClientName, c."Number" FROM Contact c INNER JOIN ChatRelation cr ON c.ContactID = cr.ContactID WHERE cr.ChatID = :cid AND cr.ContactID <> 1 LIMIT 1');
+                    'SELECT c.ClientName, c."Number" FROM Contact c INNER JOIN ChatRelation cr ON c.ContactID = cr.ContactID WHERE cr.ChatID = :cid AND cr.ContactID <> 1 LIMIT 1'
+                );
                 $stmt->bindParam(':cid', $row["ChatID"]);
                 $contactData = $stmt->execute()->fetchArray();
 
@@ -48,9 +47,8 @@ class ViberLocalFetcher extends AbstractFetcherDriver implements FetchDriverInte
                 }
 
                 $subject = "chat \"{$contactData["ClientName"]} {$contactData["Number"]}\"";
-
             }
-            
+
             $posts[] = new SerializationMessage([
                 "from" => "chat" . $row["ChatID"] . "@" . $this->getCode(),
                 "subject" => $subject,
@@ -76,7 +74,7 @@ class ViberLocalFetcher extends AbstractFetcherDriver implements FetchDriverInte
             if ($row["Type"] === 3) {
                 continue;
             }
-            
+
             $from = $row["Number"] . "@" . $this->getCode();
             if (! empty($row["ClientName"])) {
                 $from = $row["ClientName"] . '<' . $from . '>' ;
@@ -91,8 +89,7 @@ class ViberLocalFetcher extends AbstractFetcherDriver implements FetchDriverInte
             if (!empty($row["Subject"])) {
                 $subject = $row["Subject"];
                 $body = $row["Subject"];
-            }
-            elseif (!empty($row["Body"])) {
+            } elseif (!empty($row["Body"])) {
                 $subject = $row["Body"];
                 $body = $row["Body"];
             }
@@ -102,12 +99,12 @@ class ViberLocalFetcher extends AbstractFetcherDriver implements FetchDriverInte
                 if (! empty($info["quote"]["text"])) {
                     $body = ">" . $info["quote"]["text"] . "\n\n" . $body;
                 }
-             
+
                 if (! empty($info["fileInfo"])) {
                     $subject = "[ATTACHEMENT]";
                 }
             }
-            
+
             $comment = new SerializationMessage([
                 "from" => $from,
                 "subject" => $subject,
